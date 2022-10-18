@@ -1,0 +1,62 @@
+plugins {
+    id 'java'
+    id 'io.qameta.allure' version '2.10.0'
+}
+
+group 'qa.guru'
+version '1.0'
+
+allure {
+    report {
+        version.set("2.19.0")
+    }
+    adapter {
+        aspectjWeaver.set(true)
+        frameworks {
+            junit5 {
+                adapterVersion.set("2.19.0")
+            }
+        }
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+/*java {
+    toolchain{
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}*/
+
+dependencies {
+    //JUnit 5
+    testImplementation('org.junit.jupiter:junit-jupiter:5.9.0')
+
+    //Selenide
+    testImplementation('com.codeborne:selenide:6.8.1')
+    testRuntimeOnly('org.slf4j:slf4j-simple:2.0.3')
+
+    //Allure
+    testImplementation('io.qameta.allure:allure-selenide:2.19.0')
+    testImplementation('io.qameta.allure:allure-rest-assured:2.19.0')
+
+    //API
+    testImplementation('io.rest-assured:rest-assured:5.2.0')
+
+    //Faker
+    testImplementation('com.github.javafaker:javafaker:1.0.2');
+}
+
+test {
+    useJUnitPlatform()
+    systemProperties(System.getProperties())
+}
+
+
+compileJava {
+    options.encoding = 'UTF-8'
+}
+compileTestJava {
+    options.encoding = 'UTF-8'
+}
