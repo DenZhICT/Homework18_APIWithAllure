@@ -3,6 +3,7 @@ package guru.qa.pages;
 import com.codeborne.selenide.WebDriverRunner;
 import guru.qa.data.DemoWebShopData;
 import guru.qa.helpers.CustomApiListener;
+import io.restassured.response.Response;
 import org.openqa.selenium.Cookie;
 
 import static com.codeborne.selenide.Condition.text;
@@ -16,9 +17,7 @@ import static io.restassured.RestAssured.given;
 public class DemoWebShopPage {
 
     private final String logAUTH = "NOPCOMMERCE.AUTH";
-    private final String paramAndCookieName = "__RequestVerificationToken";
-    private final String paramValue = "Bk_VNMOru0fYyZqQGixkv7hEuDYD69eo6yY9rbBc3xhDeNEl0EXEMCG1h_R-1EprBDAUH1tYENLrGTQ214WSZy62iOEEJ69ajUfEqygF9sQ1";
-    private final String cookieValue = "B9YnVwzj3i8mZEckCofXRALssxrTmds_cXXQILeixVoug6GCDbvCtYw-xlqUfZ_q1UtBhokXSOJBY10q3bdlYrS_ueR1y1UEFYQ_-hAjHfI1";
+    private final String tokenName = "__RequestVerificationToken";
     DemoWebShopData data;
     String getCookie;
 
@@ -26,9 +25,23 @@ public class DemoWebShopPage {
         data = new DemoWebShopData();
     }
 
+    private Response getRegister() {
+        return given()
+                .filter(CustomApiListener.withCustomTemplates())
+                .when()
+                .get("/register")
+                .then()
+                .extract()
+                .response();
+    }
+
     public void registrationApi() {
+        Response register = getRegister();
+        String token = register.htmlPath().getString("**.find{it.@name == '__RequestVerificationToken'}.@value");
+        String cookie = register.cookie(tokenName);
+
         step("Регистрация нового пользователя", () -> {
-            return given()
+            given()
                     .filter(CustomApiListener.withCustomTemplates())
                     .formParam("Gender", data.gender.charAt(0))
                     .formParam("FirstName", data.firstName)
@@ -36,8 +49,8 @@ public class DemoWebShopPage {
                     .formParam("Email", data.email)
                     .formParam("Password", data.password)
                     .formParam("ConfirmPassword", data.password)
-                    .formParam(paramAndCookieName, paramValue)
-                    .cookie(paramAndCookieName, cookieValue)
+                    .formParam(tokenName, token)
+                    .cookie(tokenName, cookie)
                     .when()
                     .post("/register")
                     .then()
@@ -93,7 +106,7 @@ public class DemoWebShopPage {
         step("Проверка изменения данных", () -> {
             $("#FirstName").shouldHave(value(data.firstName));
             $("#LastName").shouldHave(value(data.lastName));
-            $("#Email").shouldHave(value(data.email));
+            $(".account").shouldHave(text(data.email));
         });
     }
 }
